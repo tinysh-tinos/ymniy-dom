@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Умный Дом</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a1a;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(88, 101, 242, 0.35), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(0, 200, 255, 0.25), transparent 45%),
+      linear-gradient(135deg, #05001a 0%, #0b0b2b 50%, #001022 100%);
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 16px;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 28px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #8ab4ff, #4ee1ff, #b28bff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-align: center;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+  }
+
+  .card {
+    position: relative;
+    padding: 28px 22px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(120, 160, 255, 0.6), rgba(0, 220, 255, 0.25), rgba(180, 120, 255, 0.5));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 55px rgba(90, 140, 255, 0.35);
+    border-color: rgba(140, 180, 255, 0.4);
+  }
+
+  .card .label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #9fb0d4;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4ee1ff;
+    box-shadow: 0 0 10px #4ee1ff, 0 0 20px rgba(78, 225, 255, 0.6);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .value {
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #ffffff, #b8d4ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transition: color 0.3s ease;
+  }
+
+  .value .unit {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: #8fa4c9;
+    margin-left: 4px;
+    -webkit-text-fill-color: #8fa4c9;
+  }
+
+  .value.warn {
+    background: linear-gradient(90deg, #ffb347, #ff5f6d);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .value.dry {
+    background: linear-gradient(90deg, #7ef29d, #3ad0ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .value.wet {
+    background: linear-gradient(90deg, #4ee1ff, #5865f2);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .updated {
+    margin-top: 26px;
+    font-size: 0.8rem;
+    color: #6f7fa3;
+    letter-spacing: 1px;
+  }
+
+  .offline {
+    opacity: 0.45;
+    filter: grayscale(0.6);
+  }
+
+  @media (max-width: 500px) {
+    h1 { font-size: 1.25rem; letter-spacing: 1.5px; }
+    .value { font-size: 2rem; }
+    .card { padding: 22px 18px; }
+  }
+</style>
+</head>
+<body>
+  <h1>Умный Дом</h1>
+
+  <div class="grid">
+    <div class="card" data-device="wemos1">
+      <div class="label"><span class="dot"></span>Кухня</div>
+      <div class="value"><span id="temp_kit">—</span><span class="unit">℃</span></div>
+    </div>
+
+    <div class="card" data-device="wemos2">
+      <div class="label"><span class="dot"></span>Спальня</div>
+      <div class="value"><span id="temp_mr">—</span><span class="unit">℃</span></div>
+    </div>
+
+    <div class="card" data-device="wemos3">
+      <div class="label"><span class="dot"></span>Ванная</div>
+      <div class="value"><span id="vlazh_br">—</span></div>
+    </div>
+  </div>
+
+  <div class="updated" id="updated">ожидание данных...</div>
+
+<script>
+async function refresh() {
+  try {
+    const res = await fetch('/api/data');
+    const data = await res.json();
+
+    render('wemos1', 'temp_kit', v => v.temp != null ? `${Number(v.temp).toFixed(1)}` : '—');
+    render('wemos2', 'temp_mr',  v => v.temp != null ? `${Number(v.temp).toFixed(1)}` : '—');
+    render('wemos3', 'vlazh_br', v => {
+      if (v.hum == null) return '—';
+      const h = Number(v.hum);
+      if (h < 35) return 'Сухо';
+      if (h < 65) return 'Норма';
+      return 'Влажно';
+    }, true);
+
+    document.getElementById('updated').textContent =
+      'обновлено: ' + new Date().toLocaleTimeString('ru-RU');
+  } catch (e) {
+    document.getElementById('updated').textContent = 'нет связи с сервером';
+  }
+}
+
+function render(deviceId, elId, extract, colorize) {
+  const el = document.getElementById(elId);
+  const card = document.querySelector(`.card[data-device="${deviceId}"]`);
+  const v = window.__latest?.[deviceId];
+  const text = extract(v || {});
+  el.textContent = text;
+
+  if (colorize && v && v.hum != null) {
+    el.classList.remove('dry', 'wet', 'warn');
+    const h = Number(v.hum);
+    if (h < 35) el.classList.add('dry');
+    else if (h > 65) el.classList.add('wet');
+  }
+
+  if (card) card.classList.toggle('offline', !v);
+}
+
+const _origFetch = window.fetch;
+window.fetch = async function(...args) {
+  const res = await _origFetch.apply(this, args);
+  if (args[0] === '/api/data') {
+    const clone = res.clone();
+    clone.json().then(d => { window.__latest = d; });
+  }
+  return res;
+};
+
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>
